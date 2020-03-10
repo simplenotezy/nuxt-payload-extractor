@@ -1,6 +1,7 @@
 <template>
   <section>
     <article class="post">
+      <h1 v-if="$store.state.flag">FLAG ENABLED - page-specific vuex state refilled</h1>
       <h1>{{ post.title }}</h1>
       <div v-html="post.content" />
     </article>
@@ -9,13 +10,16 @@
 
 <script>
 export default {
-  async asyncData({ $axios, $payloadURL, route, error }){
+  async asyncData({ $axios, $payloadURL, route, error, store }){
     try {
       if(process.static && process.client && route.path !== '/'){
         //route.path !== '/' - because this route is blacklisted for nuxt-payload-extractor
-        let {data} = await $axios.get($payloadURL(route))
+        let {data, state} = await $axios.$get($payloadURL(route))
+        store.commit('REFILL_STATE', state)
         return data
       }
+
+      if (route.path !== '/') store.commit('SET_FLAG', true)
 
       let post = await $axios.$get(`/post.json`)
       return {
